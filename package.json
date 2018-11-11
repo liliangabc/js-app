@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node ./bin/www",
     "dev_mine": "parcel ./src/mine/index.html -d ./public/games/mine --no-source-maps --open",
-    "build_mine": "parcel build ./src/mine/index.html -d ./public/games/mine --public-url /games/mine --no-source-maps"
+    "build_mine": "parcel build ./src/mine/index.html -d ./public/games/mine --public-url /games/mine --experimental-scope-hoisting --no-source-maps"
   },
   "dependencies": {
     "body-parser": "~1.18.2",
