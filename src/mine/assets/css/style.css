@@ -1,0 +1,43 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #fbe9e7;
+}
+
+.game-wrapper {
+  width: 100%;
+  max-width: 480px;
+  margin: auto;
+  padding: 0 6px 6px;
+}
+
+.game-wrapper canvas.game-ui {
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.game-wrapper .game-dashboard {
+  height: 100px;
+  padding: 8px 0;
+}
+
+.game-wrapper .game-dashboard .innerbox {
+  height: 100%;
+  padding: 12px;
+  font-size: 13px;
+  color: #607d8b;
+  display: flex;
+  align-items: center;
+}
+
+.game-wrapper canvas.game-ui,
+.game-wrapper .game-dashboard .innerbox {
+  border-radius: 4px;
+  background-color: #cfd8dc;
+}
