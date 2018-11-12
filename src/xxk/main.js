@@ -40,9 +40,9 @@ class Board {
     this.cols = cols
     if ((this.rows * this.cols) % 2) throw new Error('行和列的积必须是2的倍数.')
     this.colors = colors
+    this.score = 0
     this.blockSize = 0
     this.blockSpace = this.pixRatio * 2
-    this.removedColor = '#fff'
     this.updateSize()
     this.blocks = this.genBlocks()
     this.drawBlocks()
@@ -76,7 +76,7 @@ class Board {
     let { width, height } = this.canvas
     let { context, blockSize: size, blockSpace: space } = this
     this.context.clearRect(0, 0, +width, +height)
-    this.blocks.forEach(_ => _.draw({ context, size, space }))
+    this.blocks.forEach(_ => _ && _.draw({ context, size, space }))
   }
 
   getCurBlock(event) {
@@ -86,16 +86,16 @@ class Board {
     let curRow = Math.floor(ey / this.blockSize)
     for (let i = 0, len = this.blocks.length; i < len; i++) {
       let _ = this.blocks[i]
-      if (_.row === curRow && _.col === curCol) return _
+      if (_ && _.row === curRow && _.col === curCol) return _
     }
   }
 
   getTRBLBlocks(block) {
-    let i = this.blocks.indexOf(block)
-    let T = this.blocks[i - this.rows]
-    let R = this.blocks[i + 1]
-    let B = this.blocks[i + this.rows]
-    let L = this.blocks[i - 1]
+    let i = this.blocks.indexOf(block), { row, col } = block
+    let T = this.blocks.find(_ => _ && _.col === col && _.row === row - 1)
+    let R = this.blocks.find(_ => _ && _.row === row && _.col === col + 1)
+    let B = this.blocks.find(_ => _ && _.col === col && _.row === row + 1)
+    let L = this.blocks.find(_ => _ && _.row === row && _.col === col - 1)
     let blocks = [T, R, B, L]
     if (i % this.cols === 0) {
       blocks = [T, R, B]
@@ -109,7 +109,7 @@ class Board {
     let checkedBlocks = [], noCheckBlocks = [block]
     while (noCheckBlocks.length) {
       let b = noCheckBlocks.pop()
-      checkedBlocks.push(b)
+      checkedBlocks.indexOf(b) === -1 && checkedBlocks.push(b)
       this.getTRBLBlocks(b).forEach(_ => {
         if (_.color === b.color && checkedBlocks.indexOf(_) === -1) {
           noCheckBlocks.push(_)
@@ -117,6 +117,12 @@ class Board {
       })
     }
     return checkedBlocks
+  }
+
+  removeBlocks(blocks) {
+    blocks.forEach(_ => {
+      this.blocks.splice(this.blocks.indexOf(_), 1, null)
+    })
   }
 
   drawScores(blocks) {
@@ -131,7 +137,57 @@ class Board {
       return `<span class="scores" style="top:${T};left:${L};width:${W};height:${W};line-height:${W}">+${blocks.length}</span>`
     }).join('')
     this.wrapper.appendChild(div)
-    setTimeout(() => this.wrapper.removeChild(div), 300)
+    return new Promise(resolve => {
+      setTimeout(() => {
+        this.wrapper.removeChild(div)
+        resolve()
+      }, 300)
+    })
+  }
+
+  getEmptyCount(block) {
+    return this.rows - block.row - this.blocks.filter(_ => _ && _.col === block.col && _.row > block.row).length - 1
+  }
+
+  getBlocksByCol(col) {
+    return this.blocks.filter(_ => _ && _.col === col)
+  }
+
+  dropBlocks(blocks) {
+    let cols = []
+    blocks.forEach(_ => cols.indexOf(_.col) === -1 && cols.push(_.col))
+    cols.forEach(col => {
+      let counts = []
+      let blocksByCol = this.getBlocksByCol(col)
+      blocksByCol.forEach(_ => counts.push(this.getEmptyCount(_)))
+      blocksByCol.forEach((_, i) => _.row += counts[i])
+    })
+  }
+
+  isEmptyCol(col) {
+    return !this.blocks.filter(_ => _ && _.col === col).length
+  }
+
+  getEmptyCols() {
+    let cols = []
+    for (let col = 0; col < this.cols - 1; col++) {
+      this.isEmptyCol(col) && cols.push(col)
+    }
+    return cols
+  }
+
+  moveCols() {
+    let emptyCols = this.getEmptyCols()
+    this.blocks.forEach(_ => _ && (_.col -= emptyCols.filter(col => col < _.col).length))
+  }
+
+  doneCheck() {
+    let blocks = this.blocks.filter(_ => _)
+    for (let i = 0, len = blocks.length; i < len; i++) {
+      let _ = blocks[i]
+      if (this.getIdentColorBlocks(_).length > 1) return false
+    }
+    return true
   }
 
   addListener() {
@@ -140,14 +196,29 @@ class Board {
 
   onClick(event) {
     let curBlock = this.getCurBlock(event)
-    if (!curBlock || curBlock.color === this.removedColor) return
+    if (!curBlock) return
     let identColorBlocks = this.getIdentColorBlocks(curBlock)
-    if (identColorBlocks.length < 2) return
-    identColorBlocks.forEach(_ => _.color = this.removedColor)
+    let len = identColorBlocks.length
+    if (len < 2) return
+    let { onDone } = this.callbacks
+    this.score += len * len
+    this.removeBlocks(identColorBlocks)
     this.drawBlocks()
-    this.drawScores(identColorBlocks)
+    this.drawScores(identColorBlocks).then(() => {
+      this.dropBlocks(identColorBlocks)
+      this.moveCols()
+      this.drawBlocks()
+      if (this.doneCheck()) setTimeout(() => utils.isFunc(onDone) && onDone(this.score), 100)
+    })
   }
 }
 
-const demo = new Board()
-demo.initUI({ cols: 10, colors: ['#22a6ea','#f44e4e','#b3cc25','#f1a30c','#b854e6'] })
+let testOptions = { cols: 10, colors: ['#22a6ea','#f44e4e','#b3cc25','#f1a30c','#b854e6'] }
+const demo = new Board(null, {
+  onDone(score) {
+    alert(`没有可消除的方块了，你的得分: ${score}`)
+    demo.initUI(testOptions)
+  }
+})
+
+demo.initUI(testOptions)
