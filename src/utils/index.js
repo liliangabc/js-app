@@ -17,7 +17,7 @@ const utils = {
     canvas.className = 'game-ui'
     wrapper.appendChild(canvas)
     mountEl.appendChild(wrapper)
-    return canvas
+    return { wrapper, canvas }
   },
 
   getPixRatio(context) {

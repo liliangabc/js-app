@@ -26,7 +26,9 @@ class Block {
 class Board {
   constructor(mountEl, callbacks = {}) {
     this.callbacks = callbacks
-    this.canvas = utils.createCanvas(mountEl)
+    let { wrapper, canvas } = utils.createCanvas(mountEl)
+    this.wrapper = wrapper
+    this.canvas = canvas
     this.context = this.canvas.getContext('2d')
     this.pixRatio = utils.getPixRatio(this.context)
     this.addListener()
@@ -117,6 +119,21 @@ class Board {
     return checkedBlocks
   }
 
+  drawScores(blocks) {
+    let cvsStyle = window.getComputedStyle(this.canvas, null)
+    let padX = parseInt(cvsStyle.paddingLeft)
+    let padY = parseInt(cvsStyle.paddingTop)
+    const div = document.createElement('div')
+    div.innerHTML = blocks.map(_ => {
+      let T = _.row * this.blockSize / this.pixRatio + padY + 'px'
+      let L = _.col * this.blockSize / this.pixRatio + padX + 'px'
+      let W = this.blockSize / this.pixRatio + 'px'
+      return `<span class="scores" style="top:${T};left:${L};width:${W};height:${W};line-height:${W}">+${blocks.length}</span>`
+    }).join('')
+    this.wrapper.appendChild(div)
+    setTimeout(() => this.wrapper.removeChild(div), 300)
+  }
+
   addListener() {
     this.canvas.addEventListener('click', this.onClick.bind(this))
   }
@@ -128,6 +145,7 @@ class Board {
     if (identColorBlocks.length < 2) return
     identColorBlocks.forEach(_ => _.color = this.removedColor)
     this.drawBlocks()
+    this.drawScores(identColorBlocks)
   }
 }
 
