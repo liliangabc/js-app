@@ -20,3 +20,13 @@ npm run dev_mine
 ```
 npm run build_mine
 ```
+
+### 启动消消看开发环境
+```
+npm run dev_xxk
+```
+
+### 构建消消看生产版本
+```
+npm run build_xxk
+```
