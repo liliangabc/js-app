@@ -11,22 +11,12 @@ npm start
 npm i parcel -g
 ```
 
-### 启动扫雷开发环境
+### 启动游戏开发环境
 ```
-npm run dev_mine
-```
-
-### 构建扫雷生产版本
-```
-npm run build_mine
+npm run dev_<name>
 ```
 
-### 启动消消看开发环境
+### 构建游戏生产版本
 ```
-npm run dev_xxk
-```
-
-### 构建消消看生产版本
-```
-npm run build_xxk
+npm run build_<name>
 ```
