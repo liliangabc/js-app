@@ -10,7 +10,9 @@
     "dev_mine": "parcel ./src/mine/index.html -d ./public/games/mine --no-source-maps --open",
     "build_mine": "parcel build ./src/mine/index.html -d ./public/games/mine --public-url /games/mine --no-source-maps",
     "dev_xxk": "parcel ./src/xxk/index.html -d ./public/games/xxk --no-source-maps --open",
-    "build_xxk": "parcel build ./src/xxk/index.html -d ./public/games/xxk --public-url /games/xxk --no-source-maps"
+    "build_xxk": "parcel build ./src/xxk/index.html -d ./public/games/xxk --public-url /games/xxk --no-source-maps",
+    "dev_snake": "parcel ./src/snake/index.html -d ./public/games/snake --no-source-maps --open",
+    "build_snake": "parcel build ./src/snake/index.html -d ./public/games/snake --public-url /games/snake --no-source-maps"
   },
   "dependencies": {
     "body-parser": "~1.18.2",
