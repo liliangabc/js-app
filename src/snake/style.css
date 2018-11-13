@@ -17,16 +17,7 @@ body {
 .game-wrapper canvas.game-ui {
   display: block;
   width: 100%;
-  padding: 3px;
-  border-radius: 4px;
-  background-color: #fff;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-}
-
-.game-wrapper .scores {
-  position: absolute;
-  text-align: center;
-  color: #212121;
 }
