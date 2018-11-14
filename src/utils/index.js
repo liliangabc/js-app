@@ -33,6 +33,21 @@ const utils = {
 
   getRndInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min)
+  },
+
+  imageLoad(src) {
+    return new Promise((resolve, reject) => {
+      let image = new Image()
+      image.onload = () => {
+        image.onload = null
+        resolve(image)
+      }
+      image.onerror = error => {
+        image.onerror = null
+        reject(new Error('图片加载失败'))
+      }
+      image.src = src
+    })
   }
 }
 
