@@ -20,7 +20,9 @@
     "dev_snake": "parcel ./src/snake/index.html -d ./public/games/snake --no-source-maps --open",
     "build_snake": "parcel build ./src/snake/index.html -d ./public/games/snake --public-url /games/snake --no-source-maps",
     "dev_pintu": "parcel ./src/pintu/index.html -d ./public/games/pintu --no-source-maps --open",
-    "build_pintu": "parcel build ./src/pintu/index.html -d ./public/games/pintu --public-url /games/pintu --no-source-maps"
+    "build_pintu": "parcel build ./src/pintu/index.html -d ./public/games/pintu --public-url /games/pintu --no-source-maps",
+    "dev_sudoku": "parcel ./src/sudoku/index.html -d ./public/games/sudoku --no-source-maps --open",
+    "build_sudoku": "parcel build ./src/sudoku/index.html -d ./public/games/sudoku --public-url /games/sudoku --no-source-maps"
   },
   "dependencies": {
     "body-parser": "~1.18.2",
