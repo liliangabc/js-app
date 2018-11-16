@@ -24,6 +24,11 @@ class Block {
     if (this.isInput) {
       context.fillStyle = '#fff'
       context.fillRect(x, y, size, size)
+      if (this.isFocus) {
+        context.strokeStyle = context.shadowColor = '#00f'
+        context.shadowBlur = space * 8
+        context.strokeRect(x, y, size, size)
+      }
     } else {
       context.font = `bold ${size / 2}px serif`
       context.textBaseline = 'hanging'
@@ -42,17 +47,53 @@ class Board {
     this.context = this.canvas.getContext('2d')
     this.pixRatio = utils.getPixRatio(this.context)
     this.blockSpace = this.pixRatio
+    this.keyboard = this.createNumKeys()
     this.canvas.addEventListener('click', this.onClick.bind(this))
   }
 
   onClick(event) {
+    let curBlock = this.getCurBlock(event)
+    if (curBlock === this.focusBlock) return
+    this.focusBlock && (this.focusBlock.isFocus = false)
+    if (curBlock && curBlock.isInput) {
+      this.focusBlock = curBlock
+      this.focusBlock.isFocus = true
+    } else {
+      this.focusBlock = null
+    }
+    this.drawUI()
+  }
+
+  getCurBlock(event) {
+    let space = this.blockSize + this.blockSpace
+    let ex = (event.offsetX || event.pageX) * this.pixRatio
+    let ey = (event.offsetY || event.pageY) * this.pixRatio
+    let curCol = Math.floor((ex - this.blockSpace) / space)
+    let curRow = Math.floor((ey - this.blockSpace) / space)
+    for (let i = 0, len = this.blocks.length; i < len; i++) {
+      let _ = this.blocks[i]
+      if (_.row === curRow && _.col === curCol) return _
+    }
+  }
+
+  createNumKeys() {
+    let ul = document.createElement('ul')
+    ul.className = 'keyboard'
+    ul.innerHTML = Array(9).fill(null).map((_, i) => `<li>${i + 1}</li>`).join('')
+    this.canvas.parentNode.appendChild(ul)
+    return ul
+  }
+
+  updateNumkeysPos() {
 
   }
 
   initUI(emptyCount = 20, colors = ['#ccc','#def1e6']) {
     this.emptyCount = emptyCount
     this.colors = colors
+    this.focusBlock = null
     this.updateSize()
+    this.keyboard.style.lineHeight = this.blockSize / this.pixRatio + 'px'
     this.blocks = this.genBlocks()
     this.drawUI()
   }
