@@ -22,7 +22,9 @@
     "dev_pintu": "parcel ./src/games/pintu/index.html -d ./.temp --no-source-maps --open",
     "build_pintu": "parcel build ./src/games/pintu/index.html -d ./public/games/pintu --public-url /games/pintu --no-source-maps",
     "dev_sudoku": "parcel ./src/games/sudoku/index.html -d ./.temp --no-source-maps --open",
-    "build_sudoku": "parcel build ./src/games/sudoku/index.html -d ./public/games/sudoku --public-url /games/sudoku --no-source-maps"
+    "build_sudoku": "parcel build ./src/games/sudoku/index.html -d ./public/games/sudoku --public-url /games/sudoku --no-source-maps",
+    "dev_2048": "parcel ./src/games/2048/index.html -d ./.temp --no-source-maps --open",
+    "build_2048": "parcel build ./src/games/2048/index.html -d ./public/games/2048 --public-url /games/2048 --no-source-maps"
   },
   "dependencies": {
     "body-parser": "~1.18.2",
