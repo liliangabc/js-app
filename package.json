@@ -13,16 +13,16 @@
   "license": "GNU",
   "scripts": {
     "start": "node ./bin/www",
-    "dev_mine": "parcel ./src/mine/index.html -d ./.temp --no-source-maps --open",
-    "build_mine": "parcel build ./src/mine/index.html -d ./public/games/mine --public-url /games/mine --no-source-maps",
-    "dev_xxk": "parcel ./src/xxk/index.html -d ./.temp --no-source-maps --open",
-    "build_xxk": "parcel build ./src/xxk/index.html -d ./public/games/xxk --public-url /games/xxk --no-source-maps",
-    "dev_snake": "parcel ./src/snake/index.html -d ./.temp --no-source-maps --open",
-    "build_snake": "parcel build ./src/snake/index.html -d ./public/games/snake --public-url /games/snake --no-source-maps",
-    "dev_pintu": "parcel ./src/pintu/index.html -d ./.temp --no-source-maps --open",
-    "build_pintu": "parcel build ./src/pintu/index.html -d ./public/games/pintu --public-url /games/pintu --no-source-maps",
-    "dev_sudoku": "parcel ./src/sudoku/index.html -d ./.temp --no-source-maps --open",
-    "build_sudoku": "parcel build ./src/sudoku/index.html -d ./public/games/sudoku --public-url /games/sudoku --no-source-maps"
+    "dev_mine": "parcel ./src/games/mine/index.html -d ./.temp --no-source-maps --open",
+    "build_mine": "parcel build ./src/games/mine/index.html -d ./public/games/mine --public-url /games/mine --no-source-maps",
+    "dev_xxk": "parcel ./src/games/xxk/index.html -d ./.temp --no-source-maps --open",
+    "build_xxk": "parcel build ./src/games/xxk/index.html -d ./public/games/xxk --public-url /games/xxk --no-source-maps",
+    "dev_snake": "parcel ./src/games/snake/index.html -d ./.temp --no-source-maps --open",
+    "build_snake": "parcel build ./src/games/snake/index.html -d ./public/games/snake --public-url /games/snake --no-source-maps",
+    "dev_pintu": "parcel ./src/games/pintu/index.html -d ./.temp --no-source-maps --open",
+    "build_pintu": "parcel build ./src/games/pintu/index.html -d ./public/games/pintu --public-url /games/pintu --no-source-maps",
+    "dev_sudoku": "parcel ./src/games/sudoku/index.html -d ./.temp --no-source-maps --open",
+    "build_sudoku": "parcel build ./src/games/sudoku/index.html -d ./public/games/sudoku --public-url /games/sudoku --no-source-maps"
   },
   "dependencies": {
     "body-parser": "~1.18.2",
