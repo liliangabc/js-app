@@ -238,12 +238,14 @@ class Game {
     curBlock.isOpened = true
     if (curBlock.num === 9) {
       this.bombAndOver()
-      return utils.isFunc(onOver) && onOver()
+      return setTimeout(() => utils.isFunc(onOver) && onOver(), 100)
     }
     if (!curBlock.num) this.openZeroBlocks(curBlock)
     this.drawBlocks()
     utils.isFunc(onUpdate) && onUpdate()
-    if (this.checkDone()) utils.isFunc(onWinning) && onWinning()
+    if (this.checkDone()) {
+      setTimeout(() => utils.isFunc(onWinning) && onWinning(), 100)
+    }
   }
 
   onContextmenu(event) {
