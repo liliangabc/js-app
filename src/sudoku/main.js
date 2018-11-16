@@ -3,10 +3,10 @@
  * author: liliang
  */
 
-import fs from 'fs'
+// import fs from 'fs'
 import utils from '../utils'
 
-utils.createStyleSheet(fs.readFileSync(__dirname + '/style.css'))
+// utils.createStyleSheet(fs.readFileSync(__dirname + '/style.css'))
 
 class Block {
   constructor({ row, col, num = 0, isInput = false, isFocus = false }) {
@@ -25,11 +25,15 @@ class Block {
       context.fillStyle = '#fff'
       context.fillRect(x, y, size, size)
       if (this.isFocus) {
+        context.save()
         context.strokeStyle = context.shadowColor = '#00f'
         context.shadowBlur = space * 8
         context.strokeRect(x, y, size, size)
+        context.restore()
       }
-    } else {
+    }
+    if (this.num) {
+      context.fillStyle = '#424242'
       context.font = `bold ${size / 2}px serif`
       context.textBaseline = 'hanging'
       let fw = context.measureText(this.num).width
@@ -49,6 +53,7 @@ class Board {
     this.blockSpace = this.pixRatio
     this.keyboard = this.createNumKeys()
     this.canvas.addEventListener('click', this.onClick.bind(this))
+    this.keyboard.addEventListener('click', this.onKeyboardClick.bind(this))
   }
 
   onClick(event) {
@@ -62,6 +67,21 @@ class Board {
       this.focusBlock = null
     }
     this.drawUI()
+    this.updateNumkeysPos()
+  }
+
+  onKeyboardClick(event) {
+    let { target } = event, { onDone } = this.callbacks
+    if (target.tagName.toLowerCase() === 'li') {
+      this.focusBlock.num = +target.textContent
+      this.focusBlock.isFocus = false
+      this.focusBlock = null
+    }
+    this.drawUI()
+    this.keyboard.classList.remove('show')
+    if (this.checkDone()) {
+      setTimeout(() => utils.isFunc(onDone) && onDone(), 300)
+    }
   }
 
   getCurBlock(event) {
@@ -85,16 +105,29 @@ class Board {
   }
 
   updateNumkeysPos() {
+    let { blockSize, blockSpace, pixRatio, keyboard } = this
+    if (this.focusBlock) {
+      let { row } = this.focusBlock
+      keyboard.style.top = ((row + 1) * (blockSize + blockSpace) + blockSpace) / pixRatio + 'px'
+      keyboard.classList.add('show')
+    } else {
+      keyboard.classList.remove('show')
+    }
+  }
 
+  checkDone() {
+    return this.bakEmptyBlocks.every((_, i) =>  _.num === this.blocks[i].num)
   }
 
   initUI(emptyCount = 20, colors = ['#ccc','#def1e6']) {
-    this.emptyCount = emptyCount
+    this.emptyCount = Math.min(emptyCount, 72)
     this.colors = colors
     this.focusBlock = null
     this.updateSize()
     this.keyboard.style.lineHeight = this.blockSize / this.pixRatio + 'px'
-    this.blocks = this.genBlocks()
+    let { bakEmptyBlocks, blocks } = this.genBlocks()
+    this.bakEmptyBlocks = bakEmptyBlocks
+    this.blocks = blocks
     this.drawUI()
   }
 
@@ -146,11 +179,13 @@ class Board {
       })
     })
     blocks.sort(() => Math.random() - .5)
-    blocks.slice(0, this.emptyCount).forEach(_ => {
+    let emptyBlocks = blocks.slice(0, this.emptyCount)
+    let bakEmptyBlocks = JSON.parse(JSON.stringify(emptyBlocks))
+    emptyBlocks.forEach(_ => {
       _.num = 0
       _.isInput = true
     })
-    return blocks
+    return { bakEmptyBlocks, blocks }
   }
 
   drawAreaBG() {
@@ -193,5 +228,9 @@ class Board {
   }
 }
 
-let demo = new Board()
+let demo = new Board(null, {
+  onDone() {
+    demo.initUI(demo.emptyCount + (confirm('恭喜！你完成了。要体验更高难度的吗？') ? 4 : 0))
+  }
+})
 demo.initUI()
