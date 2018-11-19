@@ -9,6 +9,7 @@
   margin: auto;
   padding-top: 16px;
   user-select: none;
+  padding: 15px 8px;
 }
 
 #gameContainer .dashboard {

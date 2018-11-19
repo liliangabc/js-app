@@ -59,7 +59,7 @@ class Board {
     this.canvas = utils.createCanvas(mountEl).canvas
     this.context = this.canvas.getContext('2d')
     this.pixRatio = utils.getPixRatio(this.context)
-    this.blockSpace = this.pixRatio * 12
+    this.blockSpace = this.pixRatio * 8
     this.addListener()
   }
 
