@@ -4,7 +4,7 @@
  */
 
 import Game from './index'
-import source from './img/sprite.webp'
+import source from './img/sprite.png'
 
 const game = new Game('#gameDemo', {
 
