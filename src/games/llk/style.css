@@ -24,3 +24,34 @@ body {
   margin: auto;
   user-select: none;
 }
+
+.game-container .toolbar {
+  text-align: center;
+  padding: 12px 0;
+}
+
+.game-container .toolbar button {
+  padding: 0 12px;
+  min-width: 88px;
+  height: 36px;
+  color: #424242;
+  background-color: #fff;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  border-radius: 4px;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
+}
+
+.game-container .toolbar button + button {
+  margin-left: 6px;
+}
+
+.game-container .toolbar button:hover {
+  background-color: #f7f7f7;
+}
+
+.game-container .toolbar button:active {
+  background-color: #eee;
+}

@@ -46,23 +46,20 @@ class Game {
   onClick(event) {
     let curBlock = this.getCurBlock(event)
     if (!curBlock || this.selBlock === curBlock) return
-    if (this.selBlock) {
-      if (this.isSameBlock(this.selBlock, curBlock)) {
-        let blocks = this.findWay(this.selBlock, curBlock)
-        if (blocks) {
-          this.drawJoinLines([...blocks, curBlock])
-          this.selBlock.num = curBlock.num = 0
-          this.selBlock = null
-          return setTimeout(() => this.drawUI(), 300)
-        } else {
-          this.selBlock = curBlock
-        }
-      } else {
-        this.selBlock = curBlock
+    if (this.selBlock && this.isSameBlock(this.selBlock, curBlock)) {
+      let blocks = this.findWay(this.selBlock, curBlock)
+      if (blocks) {
+        this.drawArc(curBlock)
+        this.drawJoinLines([...blocks, curBlock])
+        this.selBlock.num = curBlock.num = 0
+        this.selBlock = null
+        return setTimeout(() => {
+          this.drawUI()
+          this.doneCheck()
+        }, 300)
       }
-    } else {
-      this.selBlock = curBlock
     }
+    this.selBlock = curBlock
     this.drawUI()
   }
 
@@ -76,6 +73,22 @@ class Game {
 
   findWay(b1, b2) {
     return this.lineDirect(b1, b2) || this.oneCorner(b1, b2) || this.twoCorner(b1, b2)
+  }
+
+  isEdgeAndRtnArr(b1, b2) {
+    if (b1.col === b2.col) {
+      if (b1.col === 0) {
+
+      } else if (b1.col === this.cols - 1) {
+
+      }
+    } else if (b1.row === b2.row) {
+      if (b1.row === 0) {
+
+      } else if (b1.row === this.rows - 1) {
+        
+      }
+    }
   }
 
   lineDirect(b1, b2) {
@@ -116,13 +129,13 @@ class Game {
       let arr = this.oneCorner(_, b2)
       if (arr) return [_, ...arr]
     }
-    for (let i = b1.col + 1; i < rightBlocks.length; i++) {
+    for (let i = 0; i < rightBlocks.length; i++) {
       let _ = rightBlocks[i]
       if (_.num) break
       let arr = this.oneCorner(_, b2)
       if (arr) return [_, ...arr]
     }
-    for (let i = b1.row + 1; i < downBlocks.length; i++) {
+    for (let i = 0; i < downBlocks.length; i++) {
       let _ = downBlocks[i]
       if (_.num) break
       let arr = this.oneCorner(_, b2)
@@ -134,6 +147,11 @@ class Game {
       let arr = this.oneCorner(_, b2)
       if (arr) return [_, ...arr]
     }
+  }
+
+  doneCheck() {
+    let { onDone = () => {} } = this.callbacks
+    return this.blocks.every(_ => !_.num) && setTimeout(onDone, 100)
   }
 
   createSprites() {
@@ -165,6 +183,17 @@ class Game {
       }
     }
     return blocks
+  }
+
+  rinse() {
+    this.selBlock = null
+    let coords = this.blocks.map(_ => ({ dx: _.dx, dy: _.dy })).sort(() => Math.random() - .5)
+    this.blocks.forEach((_, i) => {
+      let coord = coords[i]
+      _.dx = coord.dx
+      _.dy = coord.dy
+    })
+    this.drawUI()
   }
 
   drawUI() {
