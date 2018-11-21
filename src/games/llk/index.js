@@ -68,25 +68,38 @@ class Game {
   }
 
   getCenter(block) {
-    return { x: block.x + this.blockSize / 2, y: block.y + this.blockSize / 2 }
+    return [block.x + this.blockSize / 2, block.y + this.blockSize / 2]
   }
 
   findWay(b1, b2) {
-    return this.lineDirect(b1, b2) || this.oneCorner(b1, b2) || this.twoCorner(b1, b2)
+    return this.lineDirect(b1, b2) || this.edgeDirect(b1, b2) || this.oneCorner(b1, b2) || this.twoCorner(b1, b2)
   }
 
-  isEdgeAndRtnArr(b1, b2) {
+  edgeDirect(b1, b2) {
+    let { blockSize, width, height } = this
     if (b1.col === b2.col) {
       if (b1.col === 0) {
-
+        return [
+          { x: blockSize / 4, y: b1.y + blockSize / 2 },
+          { x: blockSize / 4, y: b2.y + blockSize / 2 }
+        ]
       } else if (b1.col === this.cols - 1) {
-
+        return [
+          { x: width - blockSize / 4, y: b1.y + blockSize / 2 },
+          { x: width - blockSize / 4, y: b2.y + blockSize / 2 }
+        ]
       }
     } else if (b1.row === b2.row) {
       if (b1.row === 0) {
-
+        return [
+          { x: b1.x + blockSize / 2, y:  blockSize / 4 },
+          { x: b2.x + blockSize / 2, y: blockSize / 4 }
+        ]
       } else if (b1.row === this.rows - 1) {
-        
+        return [
+          { x: b1.x + blockSize / 2, y: height - blockSize / 4 },
+          { x: b2.x + blockSize / 2, y: height - blockSize / 4 }
+        ]
       }
     }
   }
@@ -205,29 +218,29 @@ class Game {
   }
 
   drawArc(block, alpha = .6) {
-    let { context, blockSize } = this
-    let r = blockSize / 2
-    let x = block.x + blockSize / 2
-    let y = block.y + blockSize / 2
-    context.save()
-    context.fillStyle = `rgba(0, 0, 0, ${alpha})`
-    context.beginPath()
-    context.arc(x, y, r, 0, Math.PI * 2)
-    context.closePath()
-    context.fill()
-    context.restore()
+    this.context.save()
+    this.context.fillStyle = `rgba(0, 0, 0, ${alpha})`
+    this.context.beginPath()
+    this.context.arc(...this.getCenter(block), this.blockSize / 2, 0, Math.PI * 2)
+    this.context.closePath()
+    this.context.fill()
+    this.context.restore()
   }
 
   drawJoinLines(blocks) {
-    let { context } = this, { x: sx, y: sy } = this.getCenter(this.selBlock)
+    let { context, selBlock: b1, pixRatio } = this, b2 = blocks[0]
+    if (blocks.length === 1 && (Math.abs(b1.row - b2.row) === 1 || Math.abs(b1.col - b2.col) === 1)) return
     context.save()
     context.strokeStyle = '#555'
-    context.lineWidth = this.pixRatio
+    context.lineWidth = pixRatio
     context.beginPath()
-    context.moveTo(sx, sy)
+    context.moveTo(...this.getCenter(b1))
     blocks.forEach(_ => {
-      let { x, y } = this.getCenter(_)
-      context.lineTo(x, y)
+      if (_.row !== undefined) {
+        this.context.lineTo(...this.getCenter(_))
+      } else {
+        this.context.lineTo(_.x, _.y)
+      }
     })
     context.stroke()
     context.restore()
