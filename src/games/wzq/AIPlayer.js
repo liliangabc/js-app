@@ -17,8 +17,8 @@ class AIPlayer {
   }
 
   judge(pos) {
-    let a = parseInt(this.LR(pos, 1)) + parseInt(this.TB(pos, 1)) + parseInt(this.RB(pos, 1)) + parseInt(this.RT(pos, 1))
-    let b = parseInt(this.LR(pos, 2)) + parseInt(this.TB(pos, 2)) + parseInt(this.RB(pos, 2)) + parseInt(this.RT(pos, 2))
+    let a = this.LR(pos, 1) + this.TB(pos, 1) + this.RB(pos, 1) + this.RT(pos, 1) + 100
+    let b = this.LR(pos, 2) + this.TB(pos, 2) + this.RB(pos, 2) + this.RT(pos, 2)
     return a + b
   }
 
@@ -32,21 +32,21 @@ class AIPlayer {
   LR(pos, num) {
     let death = 0, count = 0, { row, col } = pos, { rows } = this.game
     let coords = this.getCoords(pos, num)
-    let arr = coords.filter(_ => _.row <= row && _.col === col)
-    for (let i = 0; i < arr.length; i++) {
-      if (arr[i].num === num) {
+    for (var i = row; i >= 0; i--) {
+      let _ = coords.find(_ => _.row === i && _.col === col)
+      if (_.num === num) {
         count++
       } else {
-        if (arr[i].num) death += 1
+        if (_.num) death += 1
         break
       }
     }
-    arr = coords.filter(_ => _.row >= row && _.row < rows && _.col === col)
-    for (let i = row; i < arr.length; i++) {
-      if (arr[i].num === num) {
+    for (var i = row; i < rows; i++) {
+      let _ = coords.find(_ => _.row === i && _.col === col)
+      if (_.num === num) {
         count++
       } else {
-        if (arr[i].num) death += 1
+        if (_.num) death += 1
         break
       }
     }
@@ -57,21 +57,21 @@ class AIPlayer {
   TB(pos, num) {
     let death = 0, count = 0, { row, col } = pos, { cols } = this.game
     let coords = this.getCoords(pos, num)
-    let arr = coords.filter(_ => _.col <= col && _.row === row)
-    for (let i = 0; i < arr.length; i++) {
-      if (arr[i].num === num) {
+    for (var i = col; i >= 0; i--) {
+      let _ = coords.find(_ => _.col === i && _.row === row)
+      if (_.num === num) {
         count++
       } else {
-        if (arr[i].num) death += 1
+        if (_.num) death += 1
         break
       }
     }
-    arr = coords.filter(_ => _.col >= col && _.col < cols && _.row === row)
-    for (let i = col; i < arr.length; i++) {
-      if (arr[i].num === num) {
+    for (var i = col; i < cols; i++) {
+      let _ = coords.find(_ => _.col === i && _.row === row)
+      if (_.num === num) {
         count++
       } else {
-        if (arr[i].num) death += 1
+        if (_.num) death += 1
         break
       }
     }
