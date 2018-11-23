@@ -10,7 +10,7 @@ const utils = {
   },
 
   createCanvas(mountEl) {
-    mountEl = mountEl || document.body
+    mountEl = typeof mountEl === 'string' && mountEl ? document.querySelector(mountEl) : document.body
     const wrapper = document.createElement('div')
     const canvas = document.createElement('canvas')
     wrapper.className = 'game-wrapper'
