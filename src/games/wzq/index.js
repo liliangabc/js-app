@@ -32,15 +32,83 @@ class Game {
   }
 
   onClick(event) {
+    let { onGameover = () => {} } = this.callbacks
     let curChess = this.getCurrent(event)
     if (!curChess) return
     curChess.num = 2
     this.drawUI()
-    if (this.checkResult(curChess)) return
+    if (this.checkResult(curChess)) return setTimeout(onGameover, 100, curChess.num)
     let aiCurChess = this.aiplayer.play()
     aiCurChess.num = 1
     this.drawUI()
-    if (this.checkResult(aiCurChess)) return
+    this.drawActiveAIChess(aiCurChess)
+    if (this.checkResult(aiCurChess)) setTimeout(onGameover, 100, aiCurChess.num)
+  }
+
+  checkResult(chess) {
+    return this.checkTB(chess) || this.checkLR(chess) || this.checkZXie(chess) || this.checkFXie(chess)
+  }
+
+  checkTB(chess) {
+    let count = 0
+    let arr = this.chessData.filter(_ => _.col === chess.col)
+    let checks = arr.filter(_ => _.row < chess.row)
+    for (let i = checks.length - 1; i >= 0; i--) {
+      if (checks[i].num !== chess.num) break
+      count++
+    }
+    checks = arr.filter(_ => _.row > chess.row)
+    for (let i = 0; i < checks.length; i++) {
+      if (checks[i].num !== chess.num) break
+      count++
+    }
+    return count >= 4 ? chess.num : 0
+  }
+
+  checkLR(chess) {
+    let count = 0
+    let arr = this.chessData.filter(_ => _.row === chess.row)
+    let checks = arr.filter(_ => _.col < chess.col)
+    for (let i = checks.length - 1; i >= 0; i--) {
+      if (checks[i].num !== chess.num) break
+      count++
+    }
+    checks = arr.filter(_ => _.col > chess.col)
+    for (let i = 0; i < checks.length; i++) {
+      if (checks[i].num !== chess.num) break
+      count++
+    }
+    return count >= 4 ? chess.num : 0
+  }
+
+  checkZXie(chess) {
+    let count = 0
+    for (let i = 1; i < 5; i++) {
+      let item = this.chessData.find(_ => _.row === chess.row - i && _.col === chess.col + i)
+      if (!item || item.num !== chess.num) break
+      count++
+    }
+    for (let i = 1; i < 5; i++) {
+      let item = this.chessData.find(_ => _.row === chess.row + i && _.col === chess.col - i)
+      if (!item || item.num !== chess.num) break
+      count++
+    }
+    return count >= 4 ? chess.num : 0
+  }
+
+  checkFXie(chess) {
+    let count = 0
+    for (let i = 1; i < 5; i++) {
+      let item = this.chessData.find(_ => _.row === chess.row - i && _.col === chess.col - i)
+      if (!item || item.num !== chess.num) break
+      count++
+    }
+    for (let i = 1; i < 5; i++) {
+      let item = this.chessData.find(_ => _.row === chess.row + i && _.col === chess.col + i)
+      if (!item || item.num !== chess.num) break
+      count++
+    }
+    return count >= 4 ? chess.num : 0
   }
 
   drawGrid() {
@@ -83,6 +151,16 @@ class Game {
     context.restore()
   }
 
+  drawActiveAIChess(chess) {
+    let { x, y } = chess, { chessRadius: r, context } = this
+    context.save()
+    context.fillStyle = '#ccc'
+    context.beginPath()
+    context.arc(x, y, r * .7, 0, Math.PI * 2)
+    context.fill()
+    context.restore()
+  }
+
   genInitData() {
     let chessData = []
     let space = this.cellWidth + this.lineWidth
@@ -101,10 +179,6 @@ class Game {
     let ex = (event.offsetX || event.pageX) * this.pixRatio
     let ey = (event.offsetY || event.pageY) * this.pixRatio
     return this.chessData.find(_ => !_.num && p(ex - _.x, 2) + p(ey - _.y, 2) < p(this.chessRadius, 2))
-  }
-
-  checkResult(chess) {
-
   }
 }
 
