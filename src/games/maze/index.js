@@ -75,12 +75,34 @@ class Game {
     return walls
   }
 
+  getRoundWalls(wall, walls) {
+    let arr = [], { row, col } = wall
+    let rows = walls.length - 1, cols = walls[row].length - 1
+    if (wall.col % 2) { // 垂直墙
+      arr.push(walls[row][col - 2])
+      walls[row - 1] && arr.push(...[walls[row - 1][col - 1], walls[row - 1][col + 1]])
+      col + 2 < cols && arr.push(walls[row][col + 2])
+      row < rows && arr.push(...[walls[row][col - 1], walls[row][col + 1]])
+    } else { // 水平墙
+      arr.push(walls[row][col - 1])
+      walls[row - 1] && arr.push(walls[row - 1][col])
+      if (walls[row + 1]) {
+        arr.push(walls[row + 1][col - 1])
+        row + 1 < rows && arr.push(walls[row + 1][col])
+        col + 1 < cols && arr.push(walls[row + 1][col + 1])
+      }
+      col + 1 < cols && arr.push(walls[row][col + 1])
+    }
+    return arr.filter(_ => _)
+  }
+
   genMaze() {
     let walls = this.initWalls()
     let rndRow = utils.getRndInt(0, walls.length - 2)
     let rndCol = utils.getRndInt(0, walls[rndRow].length - 2)
     let curWall = walls[rndRow][rndCol]
     curWall.num = 0
+    let roundWalls = this.getRoundWalls(curWall, walls)
     return walls
   }
 }
