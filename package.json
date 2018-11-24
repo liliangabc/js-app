@@ -28,7 +28,9 @@
     "dev_llk": "parcel ./src/games/llk/index.html -d ./.temp --no-source-maps --open",
     "build_llk": "parcel build ./src/games/llk/index.html -d ./public/games/llk --public-url /games/llk --no-source-maps",
     "dev_wzq": "parcel ./src/games/wzq/index.html -d ./.temp --no-source-maps --open",
-    "build_wzq": "parcel build ./src/games/wzq/index.html -d ./public/games/wzq --public-url /games/wzq --no-source-maps"
+    "build_wzq": "parcel build ./src/games/wzq/index.html -d ./public/games/wzq --public-url /games/wzq --no-source-maps",
+    "dev_maze": "parcel ./src/games/maze/index.html -d ./.temp --no-source-maps --open",
+    "build_maze": "parcel build ./src/games/maze/index.html -d ./public/games/maze --public-url /games/maze --no-source-maps"
   },
   "dependencies": {
     "body-parser": "~1.18.2",

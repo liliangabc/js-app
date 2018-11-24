@@ -1,0 +1,23 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #c8e6c9;
+}
+
+.game-wrapper {
+  max-width: 540px;
+  margin: auto;
+  padding: 12px 8px;
+}
+
+.game-wrapper canvas.game-ui {
+  display: block;
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+  background-color: #ef5350;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
+}
