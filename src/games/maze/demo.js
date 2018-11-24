@@ -4,7 +4,7 @@
  */
 
 import Game from './index'
-let options = { cols: 10 }
+let options = { cols: 20 }
 const game = new Game(null, {
 
 })

@@ -11,23 +11,171 @@ class Game {
     this.canvas = utils.createCanvas(mountEl).canvas
     this.context = this.canvas.getContext('2d')
     this.pixRatio = utils.getPixRatio(this.context)
+    this.wallRGB = [255, 255, 255]
+    this.endRGB = [50, 232, 107]
   }
 
-  initUI({ rows, cols, wallWidth = 10 }) {
+  initUI({ rows, cols, wallW = 2 }) {
     rows = rows || cols
     this.rows = rows
     this.cols = cols
-    this.wallWidth = wallWidth * this.pixRatio
+    this.wallW = wallW * this.pixRatio
     this.updateSize()
-    this.mazeTable = this.genMaze()
-    this.drawUI()
+    this.map = this.initMap()
+    this.findTable = this.createFindTable()
+    this.createMaze()
+    this.drawMaze()
+    // this.drawUI()
   }
 
   updateSize() {
     let width = this.canvas.offsetWidth
     this.width = this.canvas.width = width * this.pixRatio
-    this.wallSpace = (this.width - this.wallWidth * (this.cols + 1)) / this.cols
-    this.height = this.canvas.height = (this.wallWidth + this.wallSpace) * this.rows + this.wallWidth
+    this.cellW = (this.width - this.wallW * (this.cols + 1)) / this.cols
+    this.height = this.canvas.height = (this.wallW + this.cellW) * this.rows + this.wallW
+  }
+
+  initMap() {
+    let arr = [], rows = this.rows * 2 + 1, cols = this.cols * 2 + 1
+    for (let row = 0; row < rows; row++) {
+      arr[row] = []
+      for (let col = 0; col < cols; col++) {
+        arr[row][col] = +(row % 2 || col % 2)
+      }
+    }
+    return arr
+  }
+
+  createFindTable() {
+    let rows = this.rows * 2 + 1, cols = this.cols * 2 + 1
+    let findTable = []
+    for (let row = 1, y = 0; row < rows; row += 2, y++) {
+      findTable[y] = []
+      for (let col = 1, x = 0; col < cols; col += 2, x++) {
+        findTable[y][x] = { row, col, x, y, tag: false }
+      }
+    }
+    return findTable
+  }
+
+  removeWall(p, dir) {
+    let o = null
+    if (dir === 'top') {
+      o = (p.row == 1) ? null : { row: p.row - 1, col: p.col }
+    } else if (dir == 'right') {
+      o = (p.col == this.cols * 2 - 1) ? null : { row: p.row, col: p.col + 1 }
+    } else if (dir == 'bottom') {
+      o = (p.row == this.rows * 2 - 1) ? null : { row: p.row + 1, col: p.col }
+    } else if (dir == 'left') {
+      o = (p.col == 1) ? null : { row: p.row, col: p.col - 1 }
+    }
+    this.map[o.row][o.col] = 0
+  }
+  getCell(p, dir) {
+    if (dir == 'top') {
+      return this.findTable[p.y - 1] ? this.findTable[p.y - 1][p.x] : undefined
+    } else if (dir == 'right') {
+      return this.findTable[p.y][p.x + 1]
+    } else if (dir == 'bottom') {
+      return this.findTable[p.y + 1] ? this.findTable[p.y + 1][p.x] : undefined
+    } else if (dir == 'left') {
+      return this.findTable[p.y][p.x - 1]
+    }
+  }
+
+  createMaze() {
+    var that = this
+    var sRow = Math.floor(Math.random() * this.findTable.length)
+    var sCol = Math.floor(Math.random() * this.findTable[0].length)
+    var p = this.findTable[sRow][sCol]
+    var checked = []
+    function findFunc() {
+      var tp = that.getCell(p, 'top')
+      var rp = that.getCell(p, 'right')
+      var bp = that.getCell(p, 'bottom')
+      var lp = that.getCell(p, 'left')
+      var points = [tp, rp, bp, lp]
+      points = points.filter(function (item) {
+        return item && checked.indexOf(item) == -1
+      })
+      if (points.length == 0) {
+        p = null
+        for (var i = 0, len = checked.length; i < len; i++) {
+          var item = checked[i]
+          if (!item.tag) {
+            p = item
+            break
+          }
+        }
+        if (!p) { return true }
+        p.tag = true
+        return false
+      }
+      var rndP = points[Math.floor(Math.random() * points.length)]
+      if (rndP == tp) {
+        that.removeWall(p, 'top')
+      } else if (rndP == rp) {
+        that.removeWall(p, 'right')
+      } else if (rndP == bp) {
+        that.removeWall(p, 'bottom')
+      } else if (rndP == lp) {
+        that.removeWall(p, 'left')
+      }
+      p = rndP
+      checked.push(rndP)
+    }
+    while (!findFunc()) { }
+  }
+
+  drawMaze() {
+    var x, y
+    this.context.lineWidth = this.wallW
+    this.context.strokeStyle = 'rgb(' + this.wallRGB[0] + ',' + this.wallRGB[1] + ',' + this.wallRGB[2] + ')'
+    this.context.beginPath()
+    this.context.moveTo(this.width, this.wallW / 2)
+    this.context.lineTo(this.wallW / 2, this.wallW / 2)
+    this.context.lineTo(this.wallW / 2, this.height)
+    this.context.stroke()
+    for (var i = 1, len = this.map.length; i < len; i += 2) {
+      for (var j = 1, len2 = this.map[i].length; j < len2; j += 2) {
+        // 绘制列
+        if (this.map[i][j + 1]) {
+          x = this.wallW * Math.ceil(j / 2) + this.cellW * Math.ceil(j / 2) + this.wallW / 2
+          y = this.wallW * Math.ceil(i / 2) + this.cellW * Math.floor(i / 2) - this.wallW
+          this.context.moveTo(x, y)
+          this.context.lineTo(x, y + this.cellW + this.wallW * 2)
+        }
+        // 绘制行
+        if (this.map[i + 1] && this.map[i + 1][j]) {
+          x = this.wallW * Math.ceil(j / 2) + this.cellW * Math.floor(j / 2) - this.wallW
+          y = this.wallW * Math.ceil(i / 2) + this.cellW * Math.ceil(i / 2) + this.wallW / 2
+          this.context.moveTo(x, y)
+          this.context.lineTo(x + this.cellW + this.wallW * 2, y)
+        }
+      }
+    }
+    this.context.moveTo(this.wallW / 2, 0)
+    this.context.lineTo(this.wallW / 2, this.h)
+    this.context.moveTo(0, this.wallW / 2)
+    this.context.lineTo(this.w, this.wallW / 2)
+    this.context.stroke()
+    // 绘制开始位置
+    this.context.beginPath()
+    this.context.moveTo(this.startX, this.startY)
+    this.context.lineTo(this.startX + this.cellW, this.startY)
+    this.context.lineTo(this.startX + this.cellW / 2, this.startY + this.cellW / 3)
+    this.context.closePath()
+    this.context.fillStyle = '#444'
+    this.context.fill()
+    // 绘制出口位置
+    this.context.beginPath()
+    this.context.moveTo(this.endX + this.cellW / 4, this.endY + this.cellW * 2 / 3)
+    this.context.lineTo(this.endX + this.cellW / 2, this.endY + this.cellW)
+    this.context.lineTo(this.endX + this.cellW - this.cellW / 4, this.endY + this.cellW * 2 / 3)
+    this.context.moveTo(this.endX + this.cellW / 2, this.endY + this.cellW)
+    this.context.lineTo(this.endX + this.cellW / 2, this.endY + this.cellW / 4)
+    this.context.strokeStyle = 'rgb(' + this.endRGB[0] + ',' + this.endRGB[1] + ',' + this.endRGB[2] + ')'
+    this.context.stroke()
   }
 
   drawUI() {
@@ -51,59 +199,6 @@ class Game {
       })
     })
     context.restore()
-  }
-
-  initWalls() {
-    let walls = [], rows = this.rows, cols = this.cols * 2
-    let space = this.wallWidth + this.wallSpace
-    for (let row = 0; row < rows; row++) {
-      walls[row] = []
-      for (let col = 0; col < cols; col++) {
-        let x1, y1, x2, y2
-        if (col % 2) {
-          x1 = x2 = (col + 1) / 2 * space + this.wallWidth / 2
-          y1 = space * row
-          y2 = y1 + space + this.wallWidth
-        } else {
-          x1 = col / 2 * space
-          y1 = y2 = space * (row + 1) + this.wallWidth / 2
-          x2 = x1 + space + this.wallWidth
-        }
-        walls[row][col] = { row, col, num: 1, x1, y1, x2, y2 }
-      }
-    }
-    return walls
-  }
-
-  getRoundWalls(wall, walls) {
-    let arr = [], { row, col } = wall
-    let rows = walls.length - 1, cols = walls[row].length - 1
-    if (wall.col % 2) { // 垂直墙
-      arr.push(walls[row][col - 2])
-      walls[row - 1] && arr.push(...[walls[row - 1][col - 1], walls[row - 1][col + 1]])
-      col + 2 < cols && arr.push(walls[row][col + 2])
-      row < rows && arr.push(...[walls[row][col - 1], walls[row][col + 1]])
-    } else { // 水平墙
-      arr.push(walls[row][col - 1])
-      walls[row - 1] && arr.push(walls[row - 1][col])
-      if (walls[row + 1]) {
-        arr.push(walls[row + 1][col - 1])
-        row + 1 < rows && arr.push(walls[row + 1][col])
-        col + 1 < cols && arr.push(walls[row + 1][col + 1])
-      }
-      col + 1 < cols && arr.push(walls[row][col + 1])
-    }
-    return arr.filter(_ => _)
-  }
-
-  genMaze() {
-    let walls = this.initWalls()
-    let rndRow = utils.getRndInt(0, walls.length - 2)
-    let rndCol = utils.getRndInt(0, walls[rndRow].length - 2)
-    let curWall = walls[rndRow][rndCol]
-    curWall.num = 0
-    let roundWalls = this.getRoundWalls(curWall, walls)
-    return walls
   }
 }
 
