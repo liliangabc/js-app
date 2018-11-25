@@ -169,34 +169,34 @@ class Game {
     return { row, col, x, y }
   }
 
-  moveUp(event) {
+  moveUp() {
     this.ball.y -= this.moveSpeed
-    this.drawBall()
   }
 
-  moveRight(event) {
+  moveRight() {
     this.ball.x += this.moveSpeed
-    this.drawBall()
   }
 
   moveDown() {
     this.ball.y += this.moveSpeed
-    this.drawBall()
   }
 
-  moveLeft(event) {
+  moveLeft() {
     this.ball.x -= this.moveSpeed
-    this.drawBall()
   }
 
   move(arrow) {
     if (this.tid || this.aniFrame) return
     let action = ({ T: 'moveUp', R: 'moveRight', B: 'moveDown', L: 'moveLeft' })[arrow]
-    let animate = () => {
+    let moveFunc = () => {
       this[action]()
+      this.drawBall()
+    }
+    let animate = () => {
+      moveFunc()
       this.aniFrame = requestAnimationFrame(animate)
     }
-    this[action]()
+    moveFunc()
     this.tid = setTimeout(animate, 100)
   }
 
