@@ -12,6 +12,7 @@ a {
 body {
   background-color: #795548;
   padding: 3px;
+  user-select: none;
 }
 
 .game-container {
