@@ -8,16 +8,24 @@ body {
   background-color: #c8e6c9;
 }
 
-.game-wrapper {
+.game-container {
   max-width: 540px;
   margin: auto;
-  padding: 12px 6px;
+  position: relative;
+  background-color: #795548;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
+}
+
+.game-wrapper:last-child {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }
 
 .game-wrapper canvas.game-ui {
   display: block;
   width: 100%;
   -webkit-tap-highlight-color: transparent;
-  background-color: #ef5350;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.14), 0 2px 1px -1px rgba(0, 0, 0, 0.12);
 }

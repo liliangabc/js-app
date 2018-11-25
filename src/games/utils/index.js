@@ -9,8 +9,12 @@ const utils = {
     document.head.appendChild(newStyleEl)
   },
 
+  getMountEl(el) {
+    return el ? typeof el === 'string' ? document.querySelector(el) : el : document.body
+  },
+
   createCanvas(mountEl) {
-    mountEl = typeof mountEl === 'string' && mountEl ? document.querySelector(mountEl) : document.body
+    mountEl = this.getMountEl(mountEl)
     const wrapper = document.createElement('div')
     const canvas = document.createElement('canvas')
     wrapper.className = 'game-wrapper'

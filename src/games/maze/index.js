@@ -9,13 +9,19 @@ import utils from '../utils'
 class Game {
   constructor(mountEl, callbacks = {}) {
     this.callbacks = callbacks
-    this.canvas = utils.createCanvas(mountEl).canvas
+    const container = document.createElement('div')
+    container.className = 'game-container'
+    this.canvas = utils.createCanvas(container).canvas
+    this.gameCanvas = utils.createCanvas(container).canvas
+    utils.getMountEl(mountEl).appendChild(container)
     this.context = this.canvas.getContext('2d')
+    this.gameContext = this.gameCanvas.getContext('2d')
     this.pixRatio = utils.getPixRatio(this.context)
     this.moveSpeed = this.pixRatio
+    this.addListener()
   }
 
-  initUI({ rows, cols, wallW = 5, wallColor = '#fff' }) {
+  initUI({ rows, cols, wallW = 2, wallColor = '#fff' }) {
     rows = rows || cols
     this.rows = rows
     this.cols = cols
@@ -24,16 +30,17 @@ class Game {
     this.updateSize()
     this.grid = this.initGrid()
     this.genMaze()
-    this.startPos = this.ball = this.getStartPos()
+    this.startPos = this.getStartPos()
+    this.ball = { ...this.startPos }
     this.endCoord = this.getEndCoord()
     this.drawUI()
   }
 
   updateSize() {
     let width = this.canvas.offsetWidth
-    this.width = this.canvas.width = width * this.pixRatio
+    this.width = this.canvas.width = this.gameCanvas.width = width * this.pixRatio
     this.cellW = (this.width - this.wallW * (this.cols + 1)) / this.cols
-    this.height = this.canvas.height = (this.wallW + this.cellW) * this.rows + this.wallW
+    this.height = this.canvas.height = this.gameCanvas.height = (this.wallW + this.cellW) * this.rows + this.wallW
   }
 
   initGrid() {
@@ -162,10 +169,66 @@ class Game {
     return { row, col, x, y }
   }
 
+  moveUp(event) {
+    this.ball.y -= this.moveSpeed
+    this.drawBall()
+  }
+
+  moveRight(event) {
+    this.ball.x += this.moveSpeed
+    this.drawBall()
+  }
+
+  moveDown() {
+    this.ball.y += this.moveSpeed
+    this.drawBall()
+  }
+
+  moveLeft(event) {
+    this.ball.x -= this.moveSpeed
+    this.drawBall()
+  }
+
+  move(arrow) {
+    if (this.tid || this.aniFrame) return
+    let action = ({ T: 'moveUp', R: 'moveRight', B: 'moveDown', L: 'moveLeft' })[arrow]
+    let animate = () => {
+      this[action]()
+      this.aniFrame = requestAnimationFrame(animate)
+    }
+    this[action]()
+    this.tid = setTimeout(animate, 100)
+  }
+
+  onDocKeydown(event) {
+    let { keyCode } = event
+    let T = [87, 38], R = [68, 39], B = [83, 40], L = [65, 37]
+    if (T.indexOf(keyCode) !== -1) {
+      this.move('T')
+    } else if (R.indexOf(keyCode) !== -1) {
+      this.move('R')
+    } else if (B.indexOf(keyCode) !== -1) {
+      this.move('B')
+    } else if (L.indexOf(keyCode) !== -1) {
+      this.move('L')
+    }
+  }
+
+  onDocKeyup(event) {
+    clearTimeout(this.tid)
+    cancelAnimationFrame(this.aniFrame)
+    this.tid = this.aniFrame = null
+  }
+
+  addListener() {
+    document.addEventListener('keyup', this.onDocKeyup.bind(this), false)
+    document.addEventListener('keydown', this.onDocKeydown.bind(this), false)
+  }
+
   drawStartPos() {
     let { context, startPos, wallW, cellW } = this, { x, y } = startPos
     context.save()
-    context.fillStyle = '#666'
+    context.fillStyle = '#e33'
     context.beginPath()
     context.moveTo(x, y)
     context.lineTo(x - cellW * .5, wallW)
@@ -176,7 +239,8 @@ class Game {
   }
 
   drawBall() {
-    let { context, cellW } = this, { x, y } = this.ball
+    let { gameContext: context, cellW } = this, { x, y } = this.ball
+    context.clearRect(0, 0, this.width, this.height)
     context.save()
     context.fillStyle = '#ff0'
     context.beginPath()
