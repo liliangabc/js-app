@@ -12,9 +12,10 @@ class Game {
     this.canvas = utils.createCanvas(mountEl).canvas
     this.context = this.canvas.getContext('2d')
     this.pixRatio = utils.getPixRatio(this.context)
+    this.moveSpeed = this.pixRatio
   }
 
-  initUI({ rows, cols, wallW = 1, wallColor = '#fff' }) {
+  initUI({ rows, cols, wallW = 5, wallColor = '#fff' }) {
     rows = rows || cols
     this.rows = rows
     this.cols = cols
@@ -23,6 +24,8 @@ class Game {
     this.updateSize()
     this.grid = this.initGrid()
     this.genMaze()
+    this.startPos = this.ball = this.getStartPos()
+    this.endCoord = this.getEndCoord()
     this.drawUI()
   }
 
@@ -140,6 +143,63 @@ class Game {
     while (!func()) {}
   }
 
+  getStartPos() {
+    let col = utils.getRndInt(0, this.grid[0].length - 1)
+    col = col % 2 ? col - 1 : col
+    let space = this.cellW + this.wallW
+    let x = col * .5 * space + space * .5
+    let y = this.wallW + this.cellW * .5
+    return { x, y }
+  }
+
+  getEndCoord() {
+    let row = this.grid.length - 1
+    let col = utils.getRndInt(0, this.grid[row].length - 1)
+    col = col % 2 ? col - 1 : col
+    let space = this.cellW + this.wallW
+    let x = col * .5 * space + this.wallW * .5
+    let y = this.height - this.wallW
+    return { row, col, x, y }
+  }
+
+  drawStartPos() {
+    let { context, startPos, wallW, cellW } = this, { x, y } = startPos
+    context.save()
+    context.fillStyle = '#666'
+    context.beginPath()
+    context.moveTo(x, y)
+    context.lineTo(x - cellW * .5, wallW)
+    context.lineTo(x + cellW * .5, wallW)
+    context.closePath()
+    context.fill()
+    context.restore()
+  }
+
+  drawBall() {
+    let { context, cellW } = this, { x, y } = this.ball
+    context.save()
+    context.fillStyle = '#ff0'
+    context.beginPath()
+    context.arc(x, y, cellW * .4, 0, 2 * Math.PI)
+    context.fill()
+    context.restore()
+  }
+
+  drawEndCoord() {
+    let { x, y } = this.endCoord, { context, cellW, wallW } = this
+    context.clearRect(x, y - 1, cellW, wallW + 1)
+    context.save()
+    context.strokeStyle = '#0f0'
+    context.beginPath()
+    context.moveTo(x + cellW * .2, y - cellW * .4)
+    context.lineTo(x + cellW * .5, y)
+    context.lineTo(x + cellW * .8, y - cellW * .4)
+    context.moveTo(x + cellW * .5, y)
+    context.lineTo(x + cellW * .5, y - cellW * .8)
+    context.stroke()
+    context.restore()
+  }
+
   drawUI() {
     let { context, wallW, wallColor, width, height } = this
     context.clearRect(0, 0, width, height)
@@ -155,6 +215,9 @@ class Game {
       context.stroke()
     })
     context.restore()
+    this.drawStartPos()
+    this.drawEndCoord()
+    this.drawBall()
   }
 }
 
