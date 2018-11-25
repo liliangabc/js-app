@@ -1,5 +1,6 @@
 /**
  * 走出迷宫
+ * 采用深度优先算法实现迷宫生成
  * author: liliang
  */
 
@@ -13,7 +14,7 @@ class Game {
     this.pixRatio = utils.getPixRatio(this.context)
   }
 
-  initUI({ rows, cols, wallW = 5, wallColor = '#fff' }) {
+  initUI({ rows, cols, wallW = 1, wallColor = '#fff' }) {
     rows = rows || cols
     this.rows = rows
     this.cols = cols
@@ -23,9 +24,6 @@ class Game {
     this.grid = this.initGrid()
     this.genMaze()
     this.drawUI()
-    // this.findTable = this.createFindTable()
-    // this.createMaze()
-    // this.drawMaze()
   }
 
   updateSize() {
@@ -59,13 +57,13 @@ class Game {
     let x1, y1, x2, y2, { wallW, cellW } = this, space = wallW + cellW, count = 0
     if (row % 2) { // 水平
       if (col % 2) return null
-      x1 = col / 2 * space
+      x1 = col / 2 * space - wallW / 2
       y1 = y2 = (row + 1) / 2 * space
-      x2 = x1 + space + wallW / 2
+      x2 = x1 + space + wallW
     } else { // 垂直
       x1 = x2 = (col + 1) / 2 * space
-      y1 = row / 2 * space
-      y2 = y1 + space + wallW / 2
+      y1 = row / 2 * space - wallW / 2
+      y2 = y1 + space + wallW
     }
     return { x1, y1, x2, y2 }
   }
@@ -86,24 +84,64 @@ class Game {
     return walls
   }
 
-  getRoundCells(cell) {
-    let cells = [], { row, col } = cell, { grid } = this
-    grid[row - 2] && cells.push(grid[row - 2][col])
-    grid[row + 2] && cells.push(grid[row + 2][col])
-    cells.push(...[grid[row][col - 2], grid[row][col + 2]])
-    return cells.filter(_ => _)
+  getRoundCell(cell, arrow) {
+    let { row, col } = cell, { grid } = this
+    switch (arrow) {
+      case 'T':
+        return grid[row - 2] && grid[row - 2][col]
+      case 'R':
+        return grid[row][col + 2]
+      case 'B':
+        return grid[row + 2] && grid[row + 2][col]
+      case 'L':
+        return grid[row][col - 2]
+    }
   }
 
-  getRoundWalls(cell) {
-    let walls = [], { row, col } = cell, { grid } = this
-    grid[row - 1] && walls.push(grid[row - 1][col])
-    grid[row + 1] && walls.push(grid[row + 1][col])
-    walls.push(...[grid[row][col - 1], grid[row][col + 1]])
-    return walls.filter(_ => _)
+  removeWall(cell, arrow) {
+    let { row, col } = cell, { grid } = this, curWall
+    if (arrow === 'T') {
+      curWall = grid[row - 1] && grid[row - 1][col]
+    } else if (arrow === 'R') {
+      curWall = grid[row][col + 1]
+    } else if (arrow === 'B') {
+      curWall = grid[row + 1] && grid[row + 1][col]
+    } else if (arrow === 'L') {
+      curWall = grid[row][col - 1]
+    }
+    if (curWall) curWall.num = 0
+  }
+
+  genMaze() {
+    let curCell = this.getCells()[0], checkedCells = []
+    const func = () => {
+      let tCell = this.getRoundCell(curCell, 'T')
+      let rCell = this.getRoundCell(curCell, 'R')
+      let bCell = this.getRoundCell(curCell, 'B')
+      let lCell = this.getRoundCell(curCell, 'L')
+      let roundCells = [tCell, rCell, bCell, lCell].filter(_ => _ && checkedCells.indexOf(_) === -1)
+      if (!roundCells.length) {
+        curCell = null
+        for (let i = checkedCells.length - 1; i >= 0; i--) {
+          let _ = checkedCells[i]
+          if (!_.isFlag) {
+            curCell = _
+            break
+          }
+        }
+        if (!curCell) return true
+        curCell.isFlag = true
+        return
+      }
+      curCell = roundCells[utils.getRndInt(0, roundCells.length - 1)]
+      this.removeWall(curCell, curCell === tCell ? 'B' : curCell === rCell ? 'L' : curCell === bCell ? 'T' : 'R')
+      checkedCells[checkedCells.length] = curCell
+    }
+    while (!func()) {}
   }
 
   drawUI() {
-    let { context, cellW, wallW, wallColor, width, height } = this
+    let { context, wallW, wallColor, width, height } = this
     context.clearRect(0, 0, width, height)
     context.save()
     context.strokeStyle = wallColor
@@ -117,64 +155,6 @@ class Game {
       context.stroke()
     })
     context.restore()
-  }
-
-  genMaze() {
-    let cells = this.getCells(), checkedCells = []
-    cells.sort(() => Math.random() - .5)
-    let curCell = cells[utils.getRndInt(0, cells.length - 1)]
-    while (cells.length) {
-      let cell = cells.pop()
-      let roundCells = this.getRoundCells(cell)
-      let roundWalls = this.getRoundWalls(cell)
-      if (roundWalls.length) {
-        roundWalls[utils.getRndInt(0, roundWalls.length - 1)].num = 0
-      }
-    }
-  }
-
-  createMaze() {
-    var that = this
-    var sRow = Math.floor(Math.random() * this.findTable.length)
-    var sCol = Math.floor(Math.random() * this.findTable[0].length)
-    var p = this.findTable[sRow][sCol]
-    var checked = []
-    function findFunc() {
-      var tp = that.getCell(p, 'top')
-      var rp = that.getCell(p, 'right')
-      var bp = that.getCell(p, 'bottom')
-      var lp = that.getCell(p, 'left')
-      var points = [tp, rp, bp, lp]
-      points = points.filter(function (item) {
-        return item && checked.indexOf(item) == -1
-      })
-      if (points.length == 0) {
-        p = null
-        for (var i = 0, len = checked.length; i < len; i++) {
-          var item = checked[i]
-          if (!item.tag) {
-            p = item
-            break
-          }
-        }
-        if (!p) { return true }
-        p.tag = true
-        return false
-      }
-      var rndP = points[Math.floor(Math.random() * points.length)]
-      if (rndP == tp) {
-        that.removeWall(p, 'top')
-      } else if (rndP == rp) {
-        that.removeWall(p, 'right')
-      } else if (rndP == bp) {
-        that.removeWall(p, 'bottom')
-      } else if (rndP == lp) {
-        that.removeWall(p, 'left')
-      }
-      p = rndP
-      checked.push(rndP)
-    }
-    while (!findFunc()) { }
   }
 }
 

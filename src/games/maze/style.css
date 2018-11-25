@@ -11,7 +11,7 @@ body {
 .game-wrapper {
   max-width: 540px;
   margin: auto;
-  padding: 12px 8px;
+  padding: 12px 6px;
 }
 
 .game-wrapper canvas.game-ui {
