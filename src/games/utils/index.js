@@ -60,7 +60,7 @@ const utils = {
     context.beginPath()
     context.moveTo(x + r, y)
     context.arcTo(x + w, y, x + w, y + h, r)
-    context.arcTo(x  +w, y + h, x, y + h, r)
+    context.arcTo(x + w, y + h, x, y + h, r)
     context.arcTo(x, y + h, x, y, r)
     context.arcTo(x, y, x + w, y, r)
     context.closePath()

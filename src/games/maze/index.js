@@ -4,6 +4,7 @@
  * author: liliang
  */
 
+import Color from 'color'
 import utils from '../utils'
 
 class Game {
@@ -11,27 +12,46 @@ class Game {
     this.callbacks = callbacks
     const container = document.createElement('div')
     container.className = 'game-container'
+    this.container = container
     this.canvas = utils.createCanvas(container).canvas
     this.gameCanvas = utils.createCanvas(container).canvas
+    this.gameCanvas.parentNode.classList.add('upside')
     utils.getMountEl(mountEl).appendChild(container)
     this.context = this.canvas.getContext('2d')
     this.gameContext = this.gameCanvas.getContext('2d')
     this.pixRatio = utils.getPixRatio(this.context)
-    this.moveSpeed = this.pixRatio
+    this.moveSpeed = this.pixRatio * 2
     this.addListener()
   }
 
-  initUI({ rows, cols, wallW = 2, wallColor = '#fff' }) {
+  createMobController() {
+    const div = document.createElement('div')
+    div.className = 'game-controller'
+    div.innerHTML = `
+      <a class="up"></a>
+      <a class="right"></a>
+      <a class="down"></a>
+      <a class="left"></a>
+    `
+    div.addEventListener('touchstart', this.onCtrlTouchstart.bind(this), false)
+    div.addEventListener('touchmove', this.onCtrlTouchmove.bind(this), false)
+    div.addEventListener('touchend', this.onDocKeyup.bind(this), false)
+    this.container.appendChild(div)
+    return div
+  }
+
+  initUI({ rows, cols, wallW = 1, wallColor = '#fff' }) {
     rows = rows || cols
     this.rows = rows
     this.cols = cols
     this.wallW = wallW * this.pixRatio
     this.wallColor = wallColor
+    this.onDocKeyup()
     this.updateSize()
     this.grid = this.initGrid()
     this.genMaze()
     this.startPos = this.getStartPos()
-    this.ball = { ...this.startPos }
+    this.ball = { ...this.startPos, r: this.cellW * .35 }
     this.endCoord = this.getEndCoord()
     this.drawUI()
   }
@@ -147,7 +167,7 @@ class Game {
       this.removeWall(curCell, curCell === tCell ? 'B' : curCell === rCell ? 'L' : curCell === bCell ? 'T' : 'R')
       checkedCells[checkedCells.length] = curCell
     }
-    while (!func()) {}
+    while (!func()) { }
   }
 
   getStartPos() {
@@ -169,30 +189,71 @@ class Game {
     return { row, col, x, y }
   }
 
+  isImpact(pixData) {
+    for (let i = 0, len = pixData.length; i < len; i += 4) {
+      let color = new Color([pixData[i], pixData[i + 1], pixData[i + 2]]).toString()
+      if (color === new Color(this.wallColor).toString()) return true
+    }
+  }
+
+  isDone() {
+    let { x: x1, y: y1 } = this.ball
+    let { x, y } = this.endCoord
+    let x2 = x + this.cellW * .5
+    let y2 = y - this.cellW * .5
+    return Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) < Math.pow(this.cellW * .5, 2)
+  }
+
   moveUp() {
+    const getPixData = () => {
+      let { x, y, r } = this.ball
+      return this.context.getImageData(x - r, y - r - this.moveSpeed, r * 2, this.moveSpeed).data
+    }
+    if (this.isImpact(getPixData())) return
     this.ball.y -= this.moveSpeed
+    if (this.isImpact(getPixData())) this.ball.y += this.pixRatio
   }
 
   moveRight() {
+    const getPixData = () => {
+      let { x, y, r } = this.ball
+      return this.context.getImageData(x + r, y - r, this.moveSpeed, r * 2).data
+    }
+    if (this.isImpact(getPixData())) return
     this.ball.x += this.moveSpeed
+    if (this.isImpact(getPixData())) this.ball.x -= this.pixRatio
   }
 
   moveDown() {
+    const getPixData = () => {
+      let { x, y, r } = this.ball
+      return this.context.getImageData(x - r, y + r, r * 2, this.moveSpeed).data
+    }
+    if (this.isImpact(getPixData())) return
     this.ball.y += this.moveSpeed
+    if (this.isImpact(getPixData())) this.ball.y -= this.pixRatio
   }
 
   moveLeft() {
+    const getPixData = () => {
+      let { x, y, r } = this.ball
+      return this.context.getImageData(x - r - this.moveSpeed, y - r, this.moveSpeed, r * 2).data
+    }
+    if (this.isImpact(getPixData())) return
     this.ball.x -= this.moveSpeed
+    if (this.isImpact(getPixData())) this.ball.x += this.pixRatio
   }
 
   move(arrow) {
     if (this.tid || this.aniFrame) return
+    let { onDone = () => { } } = this.callbacks
     let action = ({ T: 'moveUp', R: 'moveRight', B: 'moveDown', L: 'moveLeft' })[arrow]
     let moveFunc = () => {
       this[action]()
       this.drawBall()
     }
     let animate = () => {
+      if (this.isDone()) return onDone()
       moveFunc()
       this.aniFrame = requestAnimationFrame(animate)
     }
@@ -214,10 +275,34 @@ class Game {
     }
   }
 
-  onDocKeyup(event) {
+  onDocKeyup() {
     clearTimeout(this.tid)
     cancelAnimationFrame(this.aniFrame)
     this.tid = this.aniFrame = null
+  }
+
+  onCtrlTouchstart(event) {
+    event.preventDefault()
+    let { className } = event.target
+    let arrow = ({ up: 'T', right: 'R', down: 'B', left: 'L' })[className]
+    this.move(arrow)
+  }
+
+  onCtrlTouchmove(event) {
+    event.preventDefault()
+    let target = event.target
+    let touch = event.targetTouches[0]
+    let ex = touch.pageX
+    let ey = touch.pageY
+    let offWidth = target.offsetWidth
+    let offLeft = target.offsetLeft
+    let offTop = target.offsetTop
+    while (target.offsetParent) {
+      offLeft += target.offsetParent.offsetLeft
+      offTop += target.offsetParent.offsetTop
+      target = target.offsetParent
+    }
+    if (ex < offLeft || ex > offLeft + offWidth || ey < offTop || ey > offTop + offWidth) this.onDocKeyup()
   }
 
   addListener() {
@@ -239,12 +324,12 @@ class Game {
   }
 
   drawBall() {
-    let { gameContext: context, cellW } = this, { x, y } = this.ball
+    let { gameContext: context, cellW } = this, { x, y, r } = this.ball
     context.clearRect(0, 0, this.width, this.height)
     context.save()
     context.fillStyle = '#ff0'
     context.beginPath()
-    context.arc(x, y, cellW * .4, 0, 2 * Math.PI)
+    context.arc(x, y, r, 0, 2 * Math.PI)
     context.fill()
     context.restore()
   }
@@ -267,6 +352,7 @@ class Game {
   drawUI() {
     let { context, wallW, wallColor, width, height } = this
     context.clearRect(0, 0, width, height)
+    this.drawStartPos()
     context.save()
     context.strokeStyle = wallColor
     context.lineWidth = wallW
@@ -279,7 +365,6 @@ class Game {
       context.stroke()
     })
     context.restore()
-    this.drawStartPos()
     this.drawEndCoord()
     this.drawBall()
   }
