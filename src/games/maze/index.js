@@ -19,8 +19,7 @@ class Game {
     utils.getMountEl(mountEl).appendChild(container)
     this.context = this.canvas.getContext('2d')
     this.gameContext = this.gameCanvas.getContext('2d')
-    this.pixRatio = utils.getPixRatio(this.context)
-    this.moveSpeed = this.pixRatio * 2
+    this.pixRatio = Math.min(utils.getPixRatio(this.context), 2)
     this.addListener()
   }
 
@@ -51,7 +50,8 @@ class Game {
     this.grid = this.initGrid()
     this.genMaze()
     this.startPos = this.getStartPos()
-    this.ball = { ...this.startPos, r: this.cellW * .35 }
+    this.ball = { ...this.startPos, r: this.cellW * .32 }
+    this.moveSpeed = Math.floor(Math.min(this.pixRatio * 2, (this.cellW - this.ball.r * 2 - this.pixRatio) / 2)) || 1
     this.endCoord = this.getEndCoord()
     this.drawUI()
   }
@@ -211,7 +211,7 @@ class Game {
     }
     if (this.isImpact(getPixData())) return
     this.ball.y -= this.moveSpeed
-    if (this.isImpact(getPixData())) this.ball.y += this.pixRatio
+    if (this.isImpact(getPixData())) this.ball.y += 1
   }
 
   moveRight() {
@@ -221,7 +221,7 @@ class Game {
     }
     if (this.isImpact(getPixData())) return
     this.ball.x += this.moveSpeed
-    if (this.isImpact(getPixData())) this.ball.x -= this.pixRatio
+    if (this.isImpact(getPixData())) this.ball.x -= 1
   }
 
   moveDown() {
@@ -231,7 +231,7 @@ class Game {
     }
     if (this.isImpact(getPixData())) return
     this.ball.y += this.moveSpeed
-    if (this.isImpact(getPixData())) this.ball.y -= this.pixRatio
+    if (this.isImpact(getPixData())) this.ball.y -= 1
   }
 
   moveLeft() {
@@ -241,7 +241,7 @@ class Game {
     }
     if (this.isImpact(getPixData())) return
     this.ball.x -= this.moveSpeed
-    if (this.isImpact(getPixData())) this.ball.x += this.pixRatio
+    if (this.isImpact(getPixData())) this.ball.x += 1
   }
 
   move(arrow) {
@@ -258,7 +258,7 @@ class Game {
       this.aniFrame = requestAnimationFrame(animate)
     }
     moveFunc()
-    this.tid = setTimeout(animate, 100)
+    this.tid = setTimeout(animate, 60)
   }
 
   onDocKeydown(event) {
